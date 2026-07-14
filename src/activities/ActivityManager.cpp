@@ -11,6 +11,7 @@
 #include "home/FileBrowserActivity.h"
 #include "home/HomeActivity.h"
 #include "home/LauncherActivity.h"
+#include "util/SlideshowActivity.h"
 #include "home/RecentBooksActivity.h"
 #include "network/CrossPointWebServerActivity.h"
 #include "reader/ReaderActivity.h"
@@ -213,6 +214,8 @@ void ActivityManager::goToCrashReport() { replaceActivity(std::make_unique<Crash
 void ActivityManager::goHome() { replaceActivity(std::make_unique<LauncherActivity>(renderer, mappedInput)); }
 
 void ActivityManager::goToBookshelf() { replaceActivity(std::make_unique<HomeActivity>(renderer, mappedInput)); }
+
+void ActivityManager::goToSlideshow() { replaceActivity(std::make_unique<SlideshowActivity>(renderer, mappedInput)); }
 
 void ActivityManager::pushActivity(std::unique_ptr<Activity>&& activity) {
   if (pendingActivity) {
