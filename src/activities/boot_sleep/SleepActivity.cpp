@@ -11,6 +11,7 @@
 #include <Txt.h>
 #include <Xtc.h>
 
+#include <algorithm>
 #include <ctime>
 
 #include "CrossPointSettings.h"
@@ -129,21 +130,37 @@ void SleepActivity::renderCustomSleepScreen() const {
     }
     const auto numFiles = files.size();
     if (numFiles > 0) {
-      // Pick a random wallpaper, excluding recently shown ones.
-      // Window: up to SLEEP_RECENT_COUNT entries, capped at numFiles-1.
       const uint16_t fileCount = static_cast<uint16_t>(std::min(numFiles, static_cast<size_t>(UINT16_MAX)));
-      const uint8_t window =
-          static_cast<uint8_t>(std::min(static_cast<size_t>(APP_STATE.recentSleepFill), numFiles - 1));
-      auto randomFileIndex = static_cast<uint16_t>(random(fileCount));
-      for (uint8_t attempt = 0; attempt < 20 && APP_STATE.isRecentSleep(randomFileIndex, window); attempt++) {
-        randomFileIndex = static_cast<uint16_t>(random(fileCount));
+      uint16_t fileIndex;
+      if (SETTINGS.sleepImageOrder == CrossPointSettings::SLEEP_ORDER_SEQUENTIAL) {
+        // Sequential: advance through the folder in filename order. The most
+        // recently pushed recentSleep entry doubles as "last shown index"; the
+        // sort makes indices stable while the folder contents don't change.
+        std::sort(files.begin(), files.end());
+        fileIndex = 0;
+        if (APP_STATE.recentSleepFill > 0) {
+          const uint8_t lastSlot =
+              (APP_STATE.recentSleepPos + CrossPointState::SLEEP_RECENT_COUNT - 1) % CrossPointState::SLEEP_RECENT_COUNT;
+          fileIndex = static_cast<uint16_t>((APP_STATE.recentSleepImages[lastSlot] + 1) % fileCount);
+        }
+      } else {
+        // Random: pick a wallpaper, excluding recently shown ones.
+        // Window: up to SLEEP_RECENT_COUNT entries, capped at numFiles-1.
+        const uint8_t window =
+            static_cast<uint8_t>(std::min(static_cast<size_t>(APP_STATE.recentSleepFill), numFiles - 1));
+        fileIndex = static_cast<uint16_t>(random(fileCount));
+        for (uint8_t attempt = 0; attempt < 20 && APP_STATE.isRecentSleep(fileIndex, window); attempt++) {
+          fileIndex = static_cast<uint16_t>(random(fileCount));
+        }
       }
-      APP_STATE.pushRecentSleep(randomFileIndex);
+      APP_STATE.pushRecentSleep(fileIndex);
       APP_STATE.saveToFile();
-      const auto filename = std::string(sleepDir) + "/" + files[randomFileIndex];
+      const auto filename = std::string(sleepDir) + "/" + files[fileIndex];
       FsFile file;
       if (Storage.openFileForRead("SLP", filename, file)) {
-        LOG_DBG("SLP", "Randomly loading: %s/%s", sleepDir, files[randomFileIndex].c_str());
+        LOG_DBG("SLP", "Loading (%s): %s/%s",
+                SETTINGS.sleepImageOrder == CrossPointSettings::SLEEP_ORDER_SEQUENTIAL ? "sequential" : "random",
+                sleepDir, files[fileIndex].c_str());
         delay(100);
         Bitmap bitmap(file, true);
         if (bitmap.parseHeaders() == BmpReaderError::Ok) {
