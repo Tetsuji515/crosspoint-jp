@@ -57,6 +57,16 @@ class CrossPointSettings {
   };
   // How the /sleep folder wallpaper is picked on each sleep (CUSTOM modes).
   enum SLEEP_IMAGE_ORDER { SLEEP_ORDER_RANDOM = 0, SLEEP_ORDER_SEQUENTIAL = 1, SLEEP_IMAGE_ORDER_COUNT };
+  // Slideshow app (SlideshowActivity, /slideshow folder)
+  enum SLIDESHOW_INTERVAL {
+    SLIDESHOW_MANUAL = 0,
+    SLIDESHOW_30_SEC = 1,
+    SLIDESHOW_1_MIN = 2,
+    SLIDESHOW_5_MIN = 3,
+    SLIDESHOW_15_MIN = 4,
+    SLIDESHOW_INTERVAL_COUNT
+  };
+  enum SLIDESHOW_ORDER { SLIDESHOW_ORDER_FILENAME = 0, SLIDESHOW_ORDER_RANDOM = 1, SLIDESHOW_ORDER_COUNT };
 
   // Status bar enum - legacy
   enum STATUS_BAR_MODE {
@@ -190,6 +200,9 @@ class CrossPointSettings {
   uint8_t sleepScreenCoverFilter = NO_FILTER;
   // /sleep folder wallpaper order (SLEEP_IMAGE_ORDER)
   uint8_t sleepImageOrder = SLEEP_ORDER_RANDOM;
+  // Slideshow app settings (edited from the in-app overlay menu)
+  uint8_t slideshowInterval = SLIDESHOW_MANUAL;
+  uint8_t slideshowOrder = SLIDESHOW_ORDER_FILENAME;
   // RTC (DS3231) feature master switch — controls sleep mode on X3
   // 0=OFF (full power-off, battery-efficient), 1=ON (deep sleep, DS3231 time preserved)
   uint8_t rtcEnabled = 0;

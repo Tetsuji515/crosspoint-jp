@@ -19,6 +19,7 @@ struct AppEntry {
 inline void launchBookshelf() { activityManager.goToBookshelf(); }
 inline void launchFileTransfer() { activityManager.goToFileTransfer(); }
 inline void launchSettings() { activityManager.goToSettings(); }
+inline void launchSlideshow() { activityManager.goToSlideshow(); }
 
 // Registration order == display order in the launcher list. Labels are
 // deliberately ASCII (the launcher renders with the scalable built-in fonts;
@@ -28,7 +29,7 @@ inline constexpr AppEntry APP_REGISTRY[] = {
     {"NOTES", nullptr, false, nullptr},
     {"WEATHER", nullptr, false, nullptr},
     {"HABITS", nullptr, false, nullptr},
-    {"SLIDESHOW", nullptr, false, nullptr},
+    {"SLIDESHOW", nullptr, true, &launchSlideshow},
     {"SUDOKU", nullptr, false, nullptr},
     {"VAULT SYNC", nullptr, false, nullptr},
     {"FILE TRANSFER", nullptr, true, &launchFileTransfer},

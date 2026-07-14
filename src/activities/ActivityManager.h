@@ -89,6 +89,7 @@ class ActivityManager {
   void goToCrashReport();
   void goHome();      // App launcher (root screen)
   void goToBookshelf();  // Bookshelf (HomeActivity), the LIBRARY app's root
+  void goToSlideshow();
 
   // This will move current activity to stack instead of deleting it
   void pushActivity(std::unique_ptr<Activity>&& activity);
