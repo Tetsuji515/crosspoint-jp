@@ -417,7 +417,7 @@ int GfxRenderer::getTextWidth(const int fontId, const char* text, const EpdFontF
   FontManager& fm = FontManager::getInstance();
 
   // Check if using external font for reader fonts
-  if (isReaderFont(fontId)) {
+  if (isReaderFont(fontId) && !strictFontMode) {
     if (fm.isExternalFontEnabled()) {
       ExternalFont* extFont = fm.getActiveFont();
       if (extFont) {
@@ -475,7 +475,7 @@ int GfxRenderer::getTextWidth(const int fontId, const char* text, const EpdFontF
 
     // Process if text contains UI font chars or CJK chars (for external font
     // fallback)
-    if (hasUiFontChar || hasCjkChar) {
+    if ((hasUiFontChar || hasCjkChar) && !strictFontMode) {
       int width = 0;
       const char* ptr = text;
       const auto fontIt = fontMap.find(effectiveFontId);
@@ -1597,7 +1597,7 @@ int GfxRenderer::getTextAdvanceX(const int fontId, const char* text, EpdFontFami
 
 int GfxRenderer::getFontAscenderSize(const int fontId) const {
   // Check if using external font for reader fonts
-  if (isReaderFont(fontId)) {
+  if (isReaderFont(fontId) && !strictFontMode) {
     FontManager& fm = FontManager::getInstance();
     if (fm.isExternalFontEnabled()) {
       ExternalFont* extFont = fm.getActiveFont();
@@ -1626,7 +1626,7 @@ int GfxRenderer::getFontAscenderSize(const int fontId) const {
 
 int GfxRenderer::getLineHeight(const int fontId) const {
   // Check if using external font for reader fonts
-  if (isReaderFont(fontId)) {
+  if (isReaderFont(fontId) && !strictFontMode) {
     FontManager& fm = FontManager::getInstance();
     if (fm.isExternalFontEnabled()) {
       ExternalFont* extFont = fm.getActiveFont();
@@ -2277,7 +2277,10 @@ void GfxRenderer::renderChar(const int fontId, const EpdFontFamily& fontFamily, 
   const bool isCjk = isCjkCodepoint(cp);
 
   // Prefer external reader font when enabled; fall back to built-in only if missing
-  if (isReaderFont(fontId)) {
+  if (strictFontMode) {
+    // Strict font mode: skip every substitution and render with the requested
+    // registered EpdFont below.
+  } else if (isReaderFont(fontId)) {
     if (fm.isExternalFontEnabled()) {
       ExternalFont* extFont = fm.getActiveFont();
       if (extFont) {

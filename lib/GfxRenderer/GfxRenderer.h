@@ -63,6 +63,7 @@ class GfxRenderer {
 
   // Dark mode: true = black background, false = white background
   bool darkMode = false;
+  bool strictFontMode = false;  // see setStrictFontMode()
   // Whether to invert images in dark mode (user preference)
   bool invertImagesInDarkMode = false;
   // Extra spacing (in pixels) for ASCII letters/digits when using external reader font.
@@ -137,6 +138,15 @@ class GfxRenderer {
   // Dark mode control
   void setDarkMode(bool darkMode) { this->darkMode = darkMode; }
   bool isDarkMode() const { return darkMode; }
+
+  // Strict font mode: render/measure text with the requested registered
+  // EpdFont only, skipping the CjkUiFont20 / external (SD-card) font
+  // substitution that normally takes priority. Lets screens that rely on the
+  // built-in scalable ASCII fonts (e.g. the launcher's graded row sizes) keep
+  // their exact glyph sizes regardless of the user's UI/reader font settings.
+  // Scope it tightly: set(true) before drawing, set(false) right after.
+  void setStrictFontMode(bool enabled) { strictFontMode = enabled; }
+  bool isStrictFontMode() const { return strictFontMode; }
   // When true, images are inverted along with text in dark mode.
   // When false (default), image rendering skips dark mode inversion.
   void setInvertImagesInDarkMode(bool invert) { invertImagesInDarkMode = invert; }

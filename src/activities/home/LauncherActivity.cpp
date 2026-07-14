@@ -363,8 +363,14 @@ void LauncherActivity::render(RenderLock&&) {
   switch (pendingScope) {
     case RenderScope::Full: {
       renderer.clearScreen();
+      // Strict font mode keeps the graded NotoSans sizes (18/12/8pt) exact:
+      // without it, ASCII would be substituted by the fixed-size CJK UI font
+      // or the user's SD-card font. Hints/toast below use the normal path so
+      // they match every other screen.
+      renderer.setStrictFontMode(true);
       renderHeader();
       renderListArea();
+      renderer.setStrictFontMode(false);
       // Physical front-button roles along the bottom edge. Back is a no-op on
       // the home screen, so its slot stays blank. Labels are ASCII on purpose
       // (see the tracked-text helpers above); mapLabels() reorders them to the
@@ -383,7 +389,9 @@ void LauncherActivity::render(RenderLock&&) {
       // and push a full-panel FAST_REFRESH -- same approach as HomeActivity.
       const Rect listRect = computeListRect();
       renderer.fillRect(listRect.x, listRect.y, listRect.width, listRect.height, false);
+      renderer.setStrictFontMode(true);
       renderListArea();
+      renderer.setStrictFontMode(false);
       displayWithFixedRefreshCycle(renderer, listMovesUntilFullRefresh, LIST_REFRESH_CYCLE_N);
       break;
     }
