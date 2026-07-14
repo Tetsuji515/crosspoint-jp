@@ -31,6 +31,7 @@
 #include "activities/util/ConfirmationActivity.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
+#include "util/MemLog.h"
 #include "util/ScreenshotUtil.h"
 
 namespace {
@@ -172,6 +173,7 @@ void EpubReaderActivity::pregenerateCache() {
 
 void EpubReaderActivity::onEnter() {
   Activity::onEnter();
+  MemLog::log("epubreader_onEnter");
 
   if (!epub) {
     return;
@@ -250,6 +252,7 @@ void EpubReaderActivity::onEnter() {
 
 void EpubReaderActivity::onExit() {
   Activity::onExit();
+  MemLog::log("epubreader_onExit");
 
   // Reset orientation back to portrait for the rest of the UI
   renderer.setOrientation(GfxRenderer::Orientation::Portrait);
@@ -939,6 +942,7 @@ void EpubReaderActivity::render(RenderLock&& lock) {
     const auto start = millis();
     renderContents(std::move(p), orientedMarginTop, orientedMarginRight, orientedMarginBottom, orientedMarginLeft);
     LOG_DBG("ERS", "Rendered page in %dms", millis() - start);
+    MemLog::log("epubreader_page_rendered");
   }
   silentIndexNextChapterIfNeeded(viewportWidth, viewportHeight);
   {

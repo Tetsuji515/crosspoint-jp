@@ -21,6 +21,7 @@
 #include "activities/settings/AozoraActivity.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
+#include "util/MemLog.h"
 
 int HomeActivity::getMenuItemCount() const {
   int count = 5;  // File Browser, Recents, Aozora, File transfer, Settings
@@ -115,6 +116,7 @@ void HomeActivity::loadRecentCovers(int coverHeight) {
 
 void HomeActivity::onEnter() {
   Activity::onEnter();
+  MemLog::log("home_onEnter");
 
   // Check if any OPDS server is configured
   hasOpdsUrl = !OPDS_STORE.getServers().empty();
@@ -130,6 +132,7 @@ void HomeActivity::onEnter() {
 
 void HomeActivity::onExit() {
   Activity::onExit();
+  MemLog::log("home_onExit");
 
   // Free the stored cover buffer if any
   freeCoverBuffer();

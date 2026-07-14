@@ -37,6 +37,7 @@
 #endif
 #include "components/UITheme.h"
 #include "fontIds.h"
+#include "util/MemLog.h"
 #include "util/ButtonNavigator.h"
 #include "util/ScreenshotUtil.h"
 
@@ -452,6 +453,8 @@ void setup() {
     APP_STATE.saveToFile();
     activityManager.goToReader(path);
   }
+
+  MemLog::log("boot_end");
 
   // Ensure we're not still holding the power button before leaving setup
   waitForPowerRelease();
