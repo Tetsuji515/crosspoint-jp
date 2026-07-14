@@ -107,6 +107,8 @@ inline std::vector<SettingInfo> getSettingsList(const SdCardFontRegistry* regist
       SettingInfo::Enum(StrId::STR_SLEEP_COVER_FILTER, &CrossPointSettings::sleepScreenCoverFilter,
                         {StrId::STR_NONE_OPT, StrId::STR_FILTER_CONTRAST, StrId::STR_INVERTED},
                         "sleepScreenCoverFilter", StrId::STR_CAT_DISPLAY),
+      SettingInfo::Enum(StrId::STR_SLEEP_IMAGE_ORDER, &CrossPointSettings::sleepImageOrder,
+                        {StrId::STR_RANDOM, StrId::STR_SEQUENTIAL}, "sleepImageOrder", StrId::STR_CAT_DISPLAY),
       // --- RTC (X3 only) ---
       SettingInfo::Toggle(StrId::STR_RTC_ENABLED, &CrossPointSettings::rtcEnabled, "rtcEnabled", StrId::STR_CAT_RTC),
       SettingInfo::Toggle(StrId::STR_SLEEP_CALENDAR, &CrossPointSettings::sleepCalendar, "sleepCalendar",

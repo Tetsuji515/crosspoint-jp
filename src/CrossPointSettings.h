@@ -55,6 +55,8 @@ class CrossPointSettings {
     CALENDAR_POS_BOTTOM = 2,
     SLEEP_CALENDAR_POSITION_COUNT
   };
+  // How the /sleep folder wallpaper is picked on each sleep (CUSTOM modes).
+  enum SLEEP_IMAGE_ORDER { SLEEP_ORDER_RANDOM = 0, SLEEP_ORDER_SEQUENTIAL = 1, SLEEP_IMAGE_ORDER_COUNT };
 
   // Status bar enum - legacy
   enum STATUS_BAR_MODE {
@@ -186,6 +188,8 @@ class CrossPointSettings {
   uint8_t sleepScreenCoverMode = FIT;
   // Sleep screen cover filter
   uint8_t sleepScreenCoverFilter = NO_FILTER;
+  // /sleep folder wallpaper order (SLEEP_IMAGE_ORDER)
+  uint8_t sleepImageOrder = SLEEP_ORDER_RANDOM;
   // RTC (DS3231) feature master switch — controls sleep mode on X3
   // 0=OFF (full power-off, battery-efficient), 1=ON (deep sleep, DS3231 time preserved)
   uint8_t rtcEnabled = 0;
