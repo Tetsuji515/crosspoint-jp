@@ -1808,7 +1808,8 @@ void CrossPointWebServer::handleSleepImageList() const {
     while (file) {
       if (!file.isDirectory()) {
         file.getName(name, sizeof(name));
-        if (name[0] != '.' && endsWithIgnoreCase(name, ".bmp")) {
+        if (name[0] != '.' && (endsWithIgnoreCase(name, ".bmp") || endsWithIgnoreCase(name, ".png") ||
+                               endsWithIgnoreCase(name, ".jpg") || endsWithIgnoreCase(name, ".jpeg"))) {
           JsonObject obj = arr.add<JsonObject>();
           obj["name"] = name;
           obj["size"] = file.size();
@@ -1849,7 +1850,13 @@ void CrossPointWebServer::handleSleepThumbnail() const {
 
   const size_t fileSize = file.size();
   server->setContentLength(fileSize);
-  server->send(200, "image/bmp", "");
+  const char* mime = "image/bmp";
+  if (endsWithIgnoreCase(filename.c_str(), ".png")) {
+    mime = "image/png";
+  } else if (endsWithIgnoreCase(filename.c_str(), ".jpg") || endsWithIgnoreCase(filename.c_str(), ".jpeg")) {
+    mime = "image/jpeg";
+  }
+  server->send(200, mime, "");
 
   // Stream file in chunks to avoid large RAM allocation
   uint8_t buf[512];

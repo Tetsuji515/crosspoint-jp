@@ -17,6 +17,7 @@
 #include "CrossPointSettings.h"
 #include "CrossPointState.h"
 #include "activities/reader/ReaderUtils.h"
+#include "util/WallpaperImage.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 #include "images/Logo120.h"
@@ -117,14 +118,18 @@ void SleepActivity::renderCustomSleepScreen() const {
         continue;
       }
 
-      if (!FsHelpers::hasBmpExtension(filename)) {
-        LOG_DBG("SLP", "Skipping non-.bmp file name: %s", name);
+      if (!WallpaperImage::hasSupportedExtension(filename)) {
+        LOG_DBG("SLP", "Skipping unsupported file name: %s", name);
         continue;
       }
-      Bitmap bitmap(file);
-      if (bitmap.parseHeaders() != BmpReaderError::Ok) {
-        LOG_DBG("SLP", "Skipping invalid BMP file: %s", name);
-        continue;
+      // Only BMP headers are cheap enough to validate up front; PNG/JPEG are
+      // validated by their decoders at render time.
+      if (FsHelpers::hasBmpExtension(filename)) {
+        Bitmap bitmap(file);
+        if (bitmap.parseHeaders() != BmpReaderError::Ok) {
+          LOG_DBG("SLP", "Skipping invalid BMP file: %s", name);
+          continue;
+        }
       }
       files.emplace_back(filename);
     }
@@ -155,17 +160,37 @@ void SleepActivity::renderCustomSleepScreen() const {
       }
       APP_STATE.pushRecentSleep(fileIndex);
       APP_STATE.saveToFile();
-      const auto filename = std::string(sleepDir) + "/" + files[fileIndex];
-      FsFile file;
-      if (Storage.openFileForRead("SLP", filename, file)) {
-        LOG_DBG("SLP", "Loading (%s): %s/%s",
-                SETTINGS.sleepImageOrder == CrossPointSettings::SLEEP_ORDER_SEQUENTIAL ? "sequential" : "random",
-                sleepDir, files[fileIndex].c_str());
-        delay(100);
-        Bitmap bitmap(file, true);
-        if (bitmap.parseHeaders() == BmpReaderError::Ok) {
-          renderBitmapSleepScreen(bitmap);
+      std::string filename = std::string(sleepDir) + "/" + files[fileIndex];
+      LOG_DBG("SLP", "Loading (%s): %s",
+              SETTINGS.sleepImageOrder == CrossPointSettings::SLEEP_ORDER_SEQUENTIAL ? "sequential" : "random",
+              filename.c_str());
+
+      // PNG: fitted streaming decode into the framebuffer (FIT only; the
+      // CROP cover mode applies to BMP/JPEG via renderBitmapSleepScreen).
+      if (FsHelpers::hasPngExtension(filename)) {
+        if (WallpaperImage::renderPngFitted(renderer, filename,
+                                            renderer.getScreenWidth(), renderer.getScreenHeight())) {
           return;
+        }
+      } else {
+        // JPEG: convert once to a cached BMP, then reuse the BMP path
+        // (keeps the FIT/CROP cover-mode behavior).
+        if (FsHelpers::hasJpgExtension(filename)) {
+          std::string bmpPath;
+          if (!WallpaperImage::ensureJpegBmpCache(filename, renderer.getScreenWidth(), renderer.getScreenHeight(),
+                                                  bmpPath)) {
+            bmpPath.clear();
+          }
+          filename = bmpPath;
+        }
+        FsFile file;
+        if (!filename.empty() && Storage.openFileForRead("SLP", filename, file)) {
+          delay(100);
+          Bitmap bitmap(file, true);
+          if (bitmap.parseHeaders() == BmpReaderError::Ok) {
+            renderBitmapSleepScreen(bitmap);
+            return;
+          }
         }
       }
     }

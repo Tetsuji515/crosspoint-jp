@@ -14,6 +14,7 @@
 #include "components/UITheme.h"
 #include "fontIds.h"
 #include "util/MemLog.h"
+#include "util/WallpaperImage.h"
 
 namespace {
 constexpr const char* SLIDESHOW_DIR = "/slideshow";
@@ -45,13 +46,17 @@ void SlideshowActivity::buildFileList() {
     }
     file.getName(name, sizeof(name));
     std::string filename(name);
-    if (filename[0] == '.' || !FsHelpers::hasBmpExtension(filename)) {
+    if (filename[0] == '.' || !WallpaperImage::hasSupportedExtension(filename)) {
       continue;
     }
-    Bitmap bitmap(file);
-    if (bitmap.parseHeaders() != BmpReaderError::Ok) {
-      LOG_DBG("SLIDE", "Skipping invalid BMP: %s", name);
-      continue;
+    // Only BMP headers are cheap enough to validate up front; PNG/JPEG are
+    // validated by their decoders at render time.
+    if (FsHelpers::hasBmpExtension(filename)) {
+      Bitmap bitmap(file);
+      if (bitmap.parseHeaders() != BmpReaderError::Ok) {
+        LOG_DBG("SLIDE", "Skipping invalid BMP: %s", name);
+        continue;
+      }
     }
     files.emplace_back(std::move(filename));
   }
@@ -175,8 +180,27 @@ void SlideshowActivity::renderImage() const {
   const auto pageWidth = renderer.getScreenWidth();
   const auto pageHeight = renderer.getScreenHeight();
 
+  std::string path = std::string(SLIDESHOW_DIR) + "/" + files[currentIndex];
+
+  // PNG: streaming decode straight into the framebuffer, fitted + centered.
+  if (FsHelpers::hasPngExtension(path)) {
+    if (!WallpaperImage::renderPngFitted(renderer, path, pageWidth, pageHeight)) {
+      renderer.drawCenteredText(UI_12_FONT_ID, pageHeight / 2, files[currentIndex].c_str());
+    }
+    return;
+  }
+
+  // JPEG: convert once to a cached BMP, then fall through to the BMP path.
+  if (FsHelpers::hasJpgExtension(path)) {
+    std::string bmpPath;
+    if (!WallpaperImage::ensureJpegBmpCache(path, pageWidth, pageHeight, bmpPath)) {
+      renderer.drawCenteredText(UI_12_FONT_ID, pageHeight / 2, files[currentIndex].c_str());
+      return;
+    }
+    path = bmpPath;
+  }
+
   FsFile file;
-  const std::string path = std::string(SLIDESHOW_DIR) + "/" + files[currentIndex];
   if (!Storage.openFileForRead("SLIDE", path, file)) {
     renderer.drawCenteredText(UI_12_FONT_ID, pageHeight / 2, files[currentIndex].c_str());
     return;
